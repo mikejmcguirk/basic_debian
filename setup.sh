@@ -2,15 +2,6 @@
 # Meant for Debian Linux Severs
 ###############################
 
-# NOTE: Run with sudo
-
-# First login as root and run the following:
-
-# apt update
-# apt install sudo
-# usermod -aG  mjm
-# reboot
-
 apt update
 apt upgrade -y
 apt autoremove -y
