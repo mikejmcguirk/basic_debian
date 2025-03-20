@@ -56,7 +56,6 @@ ufw default deny incoming # Should be default, but let's be sure
 ufw default allow outgoing # Also should be default
 ufw allow 22/tcp
 ufw limit 22/tcp
-ufw allow proto icmp icmptype 8
 ufw logging on
 ufw --force enable
 
