@@ -3,7 +3,7 @@ Do the following first:
 ```bash
 apt update
 apt install sudo
-usermod -aG sudo  mjm
+usermod -aG sudo mjm
 reboot
 ```
 
