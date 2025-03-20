@@ -46,8 +46,12 @@ chmod 600 /etc/shadow
 apt install -y vim
 
 apt install -y auditd
-systemctl enable auditd
-systemctl start auditd
+if ! systemctl is-enabled auditd >/dev/null; then
+    systemctl enable auditd
+fi
+if ! systemctl is-active auditd >/dev/null; then
+    systemctl start auditd
+fi
 # Maybe do these
 # echo 'export PATH="$PATH:/sbin"' >> ~/.bashrc
 # source ~/.bashrc
