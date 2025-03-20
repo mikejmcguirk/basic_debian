@@ -77,6 +77,10 @@ echo "Check if reboot is needed: /var/run/reboot-required" >> "$LOGFILE"
 EOF
 chmod +x /usr/local/bin/upgrade-server.sh
 echo "0 2 * * * /usr/local/bin/upgrade-server.sh" | crontab -
+# if [ -f /var/run/reboot-required ]; then echo "Reboot needed"; else echo "No reboot needed"; fi
+# cat /var/run/reboot-required
+# tail /var/log/server-upgrades.log
+
 
 echo "Server setup complete"
 
