@@ -105,11 +105,11 @@ echo "Server setup complete"
 # On your machine: ssh-keygen -t ed25519 -f your_ssh_key
 # On your machine: scp your_ssh_key.pub user@server.address:/home/user/.ssh
 # On the server: cat your_ssh_key.pub >> authorized_keys
-# On your machine: Test ssh with key
 # On the VM: sudo vim /etc/ssh/sshd_config
+# On your machine: Rename the keys to ed25519 and ed25519.pub
+# On your machine: Test ssh with key
 # Change #PasswordAuthentication yes to PasswordAuthentication no
 # sudo systemctl restart ssh
-# On your machine: Rename the keys to ed25519 and ed25519.pub
 
 # TODO: Maybe do 2FA for SSH, but seems a bit extra
 # TODO: Possibly use aide or Tripwire to detect file changes. Or Prometheus/SIEM
