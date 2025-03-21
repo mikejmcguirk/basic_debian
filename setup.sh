@@ -99,6 +99,31 @@ apt install -y apparmor apparmor-profiles
 systemctl enable apparmor
 systemctl start apparmor
 
+apt install -y postgresql
+systemctl enable postgresql
+systemctl start postgresql
+
+sed -i 's/#listen_addresses = .*/listen_addresses = localhost/' /etc/postgresql/*/main/postgresql.conf
+sed -i 's/#ssl = off/ssl = on/' /etc/postgresql/*/main/postgresql.conf
+
+mkdir -p /etc/postgresql/*/main/certs
+openssl req -new -x509 -days 365 -nodes -text -out /etc/postgresql/*/main/certs/server.crt \
+    -keyout /etc/postgresql/*/main/certs/server.key -subj "/CN=$(hostname)"
+chown postgres:postgres /etc/postgresql/*/main/certs/server.*
+chmod 600 /etc/postgresql/*/main/certs/server.*
+
+cat <<EOF > /etc/postgresql/*/main/pg_hba.conf
+# Local connections (for SSH tunnel)
+local   all   all                trust
+hostssl all   all   127.0.0.1/32 md5
+# Reject non-SSL connections
+hostnossl all all 0.0.0.0/0    reject
+EOF
+chown postgres:postgres /etc/postgresql/*/main/pg_hba.conf
+chmod 600 /etc/postgresql/*/main/pg_hba.conf
+
+systemctl restart postgresql
+
 echo "Server setup complete"
 
 # After running:
@@ -110,6 +135,9 @@ echo "Server setup complete"
 # On your machine: Test ssh with key
 # Change #PasswordAuthentication yes to PasswordAuthentication no
 # sudo systemctl restart ssh
+
+# Use SSH tunneling for remote DB access: ssh -L 5432:localhost:5432 user@server
+# Dadbod connection string: postgresql://user:pass@localhost:5432/dbname?sslmode=require
 
 # TODO: Maybe do 2FA for SSH, but seems a bit extra
 # TODO: Possibly use aide or Tripwire to detect file changes. Or Prometheus/SIEM
