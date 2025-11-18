@@ -26,8 +26,8 @@ if [ -n "$SUDO_USER" ]; then
     chown "$SUDO_USER":"$SUDO_USER" "$USER_HOME/.ssh/authorized_keys"
     chmod 600 "$USER_HOME/.ssh/authorized_keys"
 
-    echo 'PATH="$PATH:/sbin"' >> "/home/$SUDO_USER/.bashrc"
-    echo "alias ls='ls -lhA --color=auto'" >> "/home/$SUDO_USER/.bashrc"
+    echo 'PATH="$PATH:/sbin"' >>"/home/$SUDO_USER/.bashrc"
+    echo "alias ls='ls -lhA --color=auto'" >>"/home/$SUDO_USER/.bashrc"
     chown "$SUDO_USER":"$SUDO_USER" "/home/$SUDO_USER/.bashrc"
 else
     echo "Warning: SUDO_USER not set. Skipping .bashrc modifications."
@@ -35,11 +35,11 @@ fi
 
 sed -i 's/#PermitRootLogin yes/PermitRootLogin no/' /etc/ssh/sshd_config
 sed -i 's/#LogLevel INFO/LogLevel VERBOSE/' /etc/ssh/sshd_config
-echo "MaxAuthTries 3" >> /etc/ssh/sshd_config
+echo "MaxAuthTries 3" >>/etc/ssh/sshd_config
 systemctl restart ssh
 
 apt install -y fail2ban
-cat <<EOF > /etc/fail2ban/jail.local
+cat <<EOF >/etc/fail2ban/jail.local
 [sshd]
 enabled = true
 maxretry = 3
@@ -52,14 +52,12 @@ systemctl restart fail2ban
 # TODO: Will need to add rules for http. 80/tcp for http and 443/tcp for https
 # Do we even need to allow http or no?
 apt install -y ufw
-ufw default deny incoming # Should be default, but let's be sure
+ufw default deny incoming  # Should be default, but let's be sure
 ufw default allow outgoing # Also should be default
 ufw allow 22/tcp
 ufw limit 22/tcp
 ufw logging on
 ufw --force enable
-
-chmod 600 /etc/shadow
 
 apt install -y vim
 
@@ -73,13 +71,13 @@ fi
 /sbin/auditctl -e 1
 /sbin/auditctl -a always,exit -F path=/etc/ssh/sshd_config
 
-echo "blacklist floppy" |  tee -a /etc/modprobe.d/blacklist.conf > /dev/null
-echo "blacklist firewire-core" |  tee -a /etc/modprobe.d/blacklist.conf > /dev/null
-echo "blacklist bluetooth" |  tee -a /etc/modprobe.d/blacklist.conf > /dev/null
-echo "blacklist soundcore" |  tee -a /etc/modprobe.d/blacklist.conf > /dev/null
+echo "blacklist floppy" | tee -a /etc/modprobe.d/blacklist.conf >/dev/null
+echo "blacklist firewire-core" | tee -a /etc/modprobe.d/blacklist.conf >/dev/null
+echo "blacklist bluetooth" | tee -a /etc/modprobe.d/blacklist.conf >/dev/null
+echo "blacklist soundcore" | tee -a /etc/modprobe.d/blacklist.conf >/dev/null
 update-initramfs -u
 
-cat <<'EOF' > /usr/local/bin/upgrade-server.sh
+cat <<'EOF' >/usr/local/bin/upgrade-server.sh
 #!/bin/bash
 LOGFILE="/var/log/server-upgrades.log"
 echo "Upgrade started at $(date)" >> "$LOGFILE"
@@ -98,31 +96,6 @@ echo "0 4 * * * /usr/local/bin/upgrade-server.sh" | crontab -
 apt install -y apparmor apparmor-profiles
 systemctl enable apparmor
 systemctl start apparmor
-
-apt install -y postgresql
-systemctl enable postgresql
-systemctl start postgresql
-
-sed -i 's/#listen_addresses = .*/listen_addresses = localhost/' /etc/postgresql/*/main/postgresql.conf
-sed -i 's/#ssl = off/ssl = on/' /etc/postgresql/*/main/postgresql.conf
-
-mkdir -p /etc/postgresql/*/main/certs
-openssl req -new -x509 -days 365 -nodes -text -out /etc/postgresql/*/main/certs/server.crt \
-    -keyout /etc/postgresql/*/main/certs/server.key -subj "/CN=$(hostname)"
-chown postgres:postgres /etc/postgresql/*/main/certs/server.*
-chmod 600 /etc/postgresql/*/main/certs/server.*
-
-cat <<EOF > /etc/postgresql/*/main/pg_hba.conf
-# Local connections (for SSH tunnel)
-local   all   all                trust
-hostssl all   all   127.0.0.1/32 md5
-# Reject non-SSL connections
-hostnossl all all 0.0.0.0/0    reject
-EOF
-chown postgres:postgres /etc/postgresql/*/main/pg_hba.conf
-chmod 600 /etc/postgresql/*/main/pg_hba.conf
-
-systemctl restart postgresql
 
 echo "Server setup complete"
 
