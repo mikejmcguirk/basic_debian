@@ -33,8 +33,9 @@ else
     echo "Warning: SUDO_USER not set. Skipping .bashrc modifications."
 fi
 
-sed -i 's/#PermitRootLogin yes/PermitRootLogin no/' /etc/ssh/sshd_config
-sed -i 's/#PasswordAuthentication yes/PasswordAuthentication no/' /etc/ssh/sshd_config
+sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin no/' /etc/ssh/sshd_config
+# need for scp'ing keys
+# sed -i 's/#PasswordAuthentication yes/PasswordAuthentication no/' /etc/ssh/sshd_config
 sed -i 's/#LogLevel INFO/LogLevel VERBOSE/' /etc/ssh/sshd_config
 echo "MaxAuthTries 3" >>/etc/ssh/sshd_config
 systemctl restart ssh
